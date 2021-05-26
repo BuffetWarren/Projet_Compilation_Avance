@@ -1,0 +1,159 @@
+grammar org.uds.master.pascal.Pascal with org.eclipse.xtext.common.Terminals
+
+generate pascal "http://www.uds.org/master/pascal/Pascal"
+
+Axiome : program += Program;
+
+Program : entete = Entete block = Block '.';
+
+Entete : 'Program' nom_program= ID ('(' identifiants = List_identifiants ')') ?';';
+
+List_identifiants : noms += ID ( ',' noms += ID)*;
+
+Block:
+	( constante = Definition_constante) ?
+	( type = Definition_type) ?
+	( variable = Declaration_variable) ?
+	( abstraction = Declaration_procedure_fonction) ?
+	corps = Corps
+;
+
+Corps :
+	'BEGIN' instruction = List_instruction 'END'
+;
+
+List_instruction : instructions += Instruction (';' instructions += Instruction)*;
+
+Instruction : (simple = Simple_instruction | block = Block_instruction);
+
+Simple_instruction : affectation = Instruction_affectation
+	| fonction = Appel_fonction | fonction_sans_arg = ID ) ?
+;
+
+Instruction_affectation : 
+	variable = Variable ':=' expression = Expression
+;
+
+
+// a revoir 
+Variable :
+	name = ID variable = Var
+;
+
+Var : 
+	( '[' expressions = List_expression ']' array = Var
+		| acceseur ?= '.'  name = ID variable = Var  
+	) ?
+;
+
+List_expression : 
+	expressions += Expression ( ',' expressions += Expression)*
+;
+Expression :
+	expressions += Simple_expression
+		( ( operateurs += OPERATEUR_RELATIONNEL | operateurs+="in" | operateurs+="=" ) expressions+=Simple_expression ) ?
+;
+
+Simple_expression hidden(WS): 
+	( prefix_operateur=OPERATEUR_ADDITIONNEL ) ? termes += Terme ( ( operateurs += OPERATEUR_ADDITIONNEL | operateurs += 'or' ) termes += Terme | termes += Nombre_non_signe ) *
+;
+
+
+// fin
+
+
+Terme:
+	facteurs += Facteur ( 
+		( operateurs += OPERATEUR_MULTIPLICATION 
+			| operateurs += "div" | operateurs += "mod" | operateurs += "and"
+		) facteurs += Facteur
+	) * 
+;
+
+
+Facteur: 
+	variable = Variable | nombre = Nombre | string = STRING | set = Set | nil ?= 'nil'
+	 | booleen = 'true' | booleen = "false" | fonction =  Appel_fonction | '(' expression = Expression ')'
+	 | 'not' not = Facteur	
+;
+
+Nombre:
+	nombre = Any_number
+;
+
+Any_number:
+	Nombre_non_signe | Nombre_signe
+;
+
+Nombre_non_signe returns Any_number :
+	entier = Nombre_entier | reel = Nombre_reel
+;
+
+Nombre_signe returns Any_number:
+	entier = Nombre_entier_signe | reel = Nombre_reel_signe
+;
+
+Set:
+	parentheses += '[' expressions = List_expression ? parentheses += ']'
+	
+;
+
+Appel_fonction :
+	name = ID '(' expressions = List_expressions ? ')'
+;
+
+
+Block_instruction :
+		debut = Debut_instruction |
+		 repetitive = Instruction_repetitive | 
+		 condition = Instruction_conditionnelle 
+		 // | withStmt=with_statement
+
+;
+
+
+Debut_instruction:
+	
+	"BEGIN" instruction = List_instruction "END"
+	
+;
+
+
+Instruction_repetitive:
+	tantque = Instruction_tantque
+	| repeter = Instruction_repeter 
+	| pour = Instruction_pour
+;
+
+Instruction_tantque:
+	'while' expression = Expression 'do' instruction = Instruction
+;
+
+Instruction_repeter:
+	'repeat' instruction = List_instruction 'until' 
+	expression = Expression
+;
+
+Instruction_pour:
+	'for' affectation = Instruction_affectation ( 'to' | 'downto' ) 
+	expression = Expression 'do' instruction = Instruction
+;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
