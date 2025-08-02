@@ -1,4 +1,4 @@
-# Projet_Compilation_Avance
+# Projet Compilation Avance
 
 Ce projet a été réalisé dans le cadre de l'unité d'enseignement **Langages Formels et Compilation** du Master 1 Informatique à l'Université de Dschang.
 
